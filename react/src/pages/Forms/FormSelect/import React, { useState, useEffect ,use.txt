@@ -1,0 +1,1512 @@
+import React, { useState, useEffect, useRef } from "react";
+import { Card, CardBody, CardHeader, Col, Label, Row } from "reactstrap";
+import {
+    Container,
+    Form,
+    Input,
+    Nav,
+    NavItem,
+    NavLink,
+    TabContent,
+    TabPane,
+} from "reactstrap";
+import BreadCrumb from "../../../Components/Common/BreadCrumb";
+import PreviewCardHeader from "../../../Components/Common/PreviewCardHeader";
+import UiContent from "../../../Components/Common/UiContent";
+
+import {
+    DefaultSelect,
+    MenuSize,
+    SelectSize,
+} from "../FormSelect/FormSelectCode";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
+
+import avatar1 from "../../../assets/images/users/user-dummy-img.jpg";
+import classnames from "classnames";
+
+import axios from "axios";
+
+const animatedComponents = makeAnimated();
+
+const SingleOptions = [
+    { value: "Choices 1", label: "Choices 1" },
+    { value: "Choices 2", label: "Choices 2" },
+];
+
+/*
+    <ul>
+      {data.hits.map(item => (
+        <li key={item.objectID}>
+          <a href={item.url}>{item.title}</a>
+        </li>
+      ))}
+    </ul>
+*/
+const GroupOptions = [
+    {
+        label: "管理部",
+        options: [
+            { label: "萩原　義行", value: "Hagiwara" },
+            { label: "宮里　さゆり", value: "Miyasato" },
+            { label: "大牟田　英信", value: "Omuta" },
+            { label: "仲里　考史", value: "Nakasato" },
+            { label: "本多　直人", value: "Honda" },
+        ],
+    },
+    {
+        label: "IT",
+        options: [
+            { label: "堀　拓明", value: "Hori" },
+            { label: "德田　亮", value: "Tokuda" },
+        ],
+    },
+];
+
+const GroupOptions2 = [
+    { value: "Zero", label: "Zero" },
+    { value: "Two", label: "Two" },
+];
+
+const noSortingGroup = [
+    { value: "Madrid", label: "Madrid" },
+    { value: "Toronto", label: "Toronto" },
+];
+
+const options = [
+    { label: "josh@joshuajohnson.co.uk", value: 1, disabled: true },
+    { label: "joe@bloggs.co.uk", value: 2, disabled: true },
+];
+
+const baseURL = "http://127.0.0.1:8000/api/getUser";
+const userDetail = "http://127.0.0.1:8000/api/getUserDetail";
+const department = "http://127.0.0.1:8000/api/getDepartment";
+const officeData = "http://127.0.0.1:8000/api/getOffice";
+const editUserdata = "http://127.0.0.1:8000/api/editUser";
+const positionData = "http://127.0.0.1:8000/api/getPosition";
+const categoryAllData = "http://127.0.0.1:8000/api/getCategory";
+const companyAllData = "http://127.0.0.1:8000/api/getCompany";
+
+const FormSelect = () => {
+    const [data, setData] = useState([]);
+    const [position, setPosition] = useState([]);
+    const [office, setOffice] = useState([]);
+    const [deptValue, setDeptValue] = useState("");
+    const [officeValue, setOfficeValue] = useState("");
+    const [categoryData, setCategoryData] = useState([]);
+    const [companyData, setCompanyData] = useState([]);
+    const [newdata, setnewData] = useState([]);
+    const [selectedSingle, setSelectedSingle] = useState(null);
+    const [selectedGroup, setSelectedGroup] = useState([]);
+    const [selectedGroup2, setSelectedGroup2] = useState(null);
+    const [selectedNoSortingGroup, setSelectedNoSortingGroup] = useState(null);
+    const [selectedMulti, setselectedMulti] = useState(null);
+    const [selectedMulti2, setselectedMulti2] = useState(null);
+    const [selectedMulti3, setselectedMulti3] = useState(null);
+
+    const [activeTab, setActiveTab] = useState("1");
+    const [userData, setUserData] = useState([]);
+  
+    const handleClear = () => {
+        
+        const newSt = {
+            firstname: "",
+            surname:"",
+            email: "",
+            department_id: "",
+            office_id: "",
+            login_id: "",
+            position_id: "",
+            category_id: "",
+            company_id: "",
+        };
+        setUserData((s) => newSt);
+    };
+const getUsers = async () => {
+        const data = await axios.get("api/deptValue");
+        console.log("test", data);
+    };
+    useEffect(() => {
+        getUsers();
+    }, []);
+    useEffect(() => {
+        console.log(1);
+        axios.get(department).then((response) => {
+            setData(response.data);
+        });
+        axios.get(officeData).then((response) => {
+            setOffice(response.data);
+        });
+        axios.get(companyAllData).then((response) => {
+            console.log("deptValue Data", response);
+            setCompanyData(response.data);
+        });
+        axios.get(positionData).then((response) => {
+            console.log("position Data", response);
+            setPosition(response.data);
+        });
+        axios.get(categoryAllData).then((response) => {
+            console.log("CatagoryData", response);
+            setCategoryData(response.data);
+        });
+    }, []);
+
+  
+
+    useEffect(() => {
+        console.log("company data", deptValue, officeValue);
+
+        ///api call
+        if (deptValue !== "" && officeValue !== "") {
+            axios
+                .post(baseURL, {
+                    department_id: deptValue,
+                    office_id: officeValue,
+                })
+                .then((response) => {
+                    
+                    if (response.data !== "no record found") {
+                        setnewData(response.data);
+                    } else {
+                        setnewData([]);
+                        handleClear()
+                    }
+                });
+        }
+    }, [deptValue, officeValue]);
+
+    
+
+    const handleUserData =(e)=>{
+       
+        console.log("e.target.value.........",e.target.value)
+ if (newdata.length > 0) {
+           
+    console.log('newData;;;;;;;;;;;;;;;;;;;;',newdata);
+    axios
+        .post(userDetail, {
+            id : e.target.value,
+        })
+        .then((response) => {
+            console.log("newData response .......",response.data);
+            if (response.data !== "no record found") {
+                let data = response.data;
+                data = {
+                    ...data,
+                    firstname: data.name.split(" ")[0],
+                    surname: data.name.split(" ")[1],
+                };
+                setUserData(data);
+                console.log('data:::::',data);
+            }
+        })
+        setSelectedGroup(e.target.value )
+}
+    }
+    const onEdit = (e) => {
+        e.preventDefault();
+        console.log("userData ..............", userData);
+        const data = {
+            user_name: userData.firstname + " " + userData.surname,
+            user_email: userData.email,
+            department_id: userData.department_id,
+            office_id: userData.office_id,
+            login_id: userData.login_id,
+            position_id: userData.position_id,
+            category_id: userData.category_id,
+            company_id: userData.company_id,
+            user_edit_r: userData.user_edit_r,
+            user_refer_r: userData.user_refer_r,
+            notice_edit_r: userData.notice_edit_r,
+            notice_reply_r: userData.notice_reply_r,
+            notice_refer_r: userData.notice_refer_r,
+            wiki_edit_r: userData.wiki_edit_r,
+            wiki_refer_r: userData.wiki_refer_r,
+            wf_edit_r: userData.wf_edit_r,
+            wf_refer_r: userData.wf_refer_r,
+            sns_edit_r: userData.sns_edit_r,
+            sns_refer_r: userData.sns_refer_r,
+            fs_edit_r: userData.fs_edit_r,
+            fs_refer_r: userData.fs_refer_r,
+        };
+        
+        console.log("updated data", data);
+        axios
+            .post(`${editUserdata}/${userData.id}`, data)
+            .then((response) => {
+                console.log("response::::::::", response);
+                alert("User Updated Successfully");
+                setUserData(response);
+            })
+            .catch((err) => {
+                console.log("err:::::", err);
+            });
+    };
+
+    const tabChange = (tab) => {
+        if (activeTab !== tab) setActiveTab(tab);
+    };
+
+    function handleSelectSingle(selectedSingle) {
+        setSelectedSingle(selectedSingle);
+    }
+
+    function handleSelectGroups(selectedGroup) {
+        setSelectedGroup(selectedGroup);
+    }
+
+    function handleSelectGroups2(selectedGroup2) {
+        setSelectedGroup2(selectedGroup2);
+    }
+
+    function handleSelectNoSortingGroup(selectedNoSortingGroup) {
+        setSelectedNoSortingGroup(selectedNoSortingGroup);
+    }
+
+    function handleMulti(selectedMulti) {
+        setselectedMulti(selectedMulti);
+    }
+
+    function handleMulti2(selectedMulti2) {
+        setselectedMulti2(selectedMulti2);
+    }
+    function handleMulti3(selectedMulti3) {
+        setselectedMulti3(selectedMulti3);
+    }
+
+    const [user, setUser] = useState();
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await axios("/api/users");
+            setUser(result.data);
+        };
+        fetchData();
+    }, []);
+
+    document.title = "Form Select | Velzon - React Admin & Dashboard Template";
+
+    return (
+        <React.Fragment>
+            <UiContent />
+            <div className="page-content">
+                <div className="container-fluid">
+                    <BreadCrumb title="利用者検索・編集" pageTitle="Forms" />
+                    <Row>
+                        <Col lg={12}>
+                            <Card>
+                                <PreviewCardHeader title="利用者検索" />
+                                <CardBody>
+                                    <div className="live-preview">
+                                        <Row className="align-items-center g-3">
+                                            <Col lg={4}>
+                                                <Label
+                                                    htmlFor="dept"
+                                                    className="form-label text-muted"
+                                                >
+                                                    部門
+                                                </Label>
+                                                <select
+                                                    className="form-select"
+                                                    aria-label=".form-select-sm example"
+                                                    name="dept"
+                                                    value={deptValue}
+                                                    onChange={(e) =>
+                                                        setDeptValue(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    <option>
+                                                    部門を選択してください
+                                                    </option>
+
+                                                    {data?.map(
+                                                        (items, index) => (
+                                                            <option
+                                                                key={index}
+                                                                value={items.id}
+                                                            >
+                                                                {
+                                                                    items.dept_name
+                                                                }
+                                                            </option>
+                                                        )
+                                                    )}
+                                                </select>
+                                            </Col>
+                                            <Col lg={4}>
+                                                <Label
+                                                    htmlFor="office"
+                                                    className="form-label text-muted"
+                                                >
+                                                    オフィス
+                                                </Label>
+                                                <select
+                                                    className="form-select"
+                                                    aria-label=".form-select-sm example"
+                                                    name="office"
+                                                    value={officeValue}
+                                                    onChange={(e) =>
+                                                        setOfficeValue(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    <option>
+                                                        オフィスを選択してください
+                                                    </option>
+                                                    {office?.map(
+                                                        (items, index) => (
+                                                            <option
+                                                                key={index}
+                                                                value={items.id}
+                                                            >
+                                                                {
+                                                                    items.office_name
+                                                                }
+                                                            </option>
+                                                        )
+                                                    )}
+                                                </select>
+                                            </Col>
+
+                                            <Col lg={4}>
+                                                {/*<div className="mb-3">*/}
+                                                <Label
+                                                    htmlFor="user"
+                                                    className="form-label text-muted"
+                                                >
+                                                    利用者名
+                                                </Label>
+                                                <select
+                                                    className="form-select"
+                                                    aria-label=".form-select-sm example"
+                                                    name="office"
+                                                    value={selectedGroup}
+                                                    // onChange={(e) =>
+                                                    //     setSelectedGroup(
+                                                    //         e.target.value
+                                                    //     )
+                                                    // }
+                                                    onChange={handleUserData}
+                                                    //onChange={setSelectedGroup}
+                                                >
+                                                    <option>
+                                                        オフィスを選択してください
+                                                    </option>
+                                                    {newdata?.map(
+                                                        (items, index) => (
+                                                            <option
+                                                                key={index}
+                                                                value={items.id}
+                                                            >
+                                                                {
+                                                                    items.user_name
+                                                                }
+                                                            </option>
+                                                        )
+                                                    )}
+                                                </select>
+                                                {/* <Select
+                                                            value={selectedGroup}
+                                                            // searchable
+                                                            onChange={() => {
+                                                                handleSelectGroups();
+                                                            }}
+                                                            options={GroupOptions}
+                                                            name="user"
+                                                        /> */}
+                                                {/*</div>*/}
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    </Row>
+
+                    <Row>
+                        <Col lg={12}>
+                            <Card>
+                                <PreviewCardHeader title="情報編集" />
+                                <CardBody>
+                                    <TabContent activeTab={activeTab}>
+                                        <TabPane tabId="1">
+                                            <Form>
+                                                <Row>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="lastnameInput"
+                                                                className="form-label"
+                                                            >
+                                                                姓
+                                                            </Label>
+                                                            <Input
+                                                                type="text"
+                                                                className="form-control"
+                                                                id="lastnameInput"
+                                                                placeholder=""
+                                                                defaultValue={
+                                                                    ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            surname:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    userData.surname
+                                                                }
+                                                            ></Input>
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="firstnameInput"
+                                                                className="form-label"
+                                                            >
+                                                                名
+                                                            </Label>
+                                                            <Input
+                                                                type="text"
+                                                                className="form-control"
+                                                                id="firstnameInput"
+                                                                placeholder=""
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            firstname:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    userData.firstname
+                                                                }
+                                                                defaultValue={
+                                                                    ""
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="skillsInput"
+                                                                className="form-label"
+                                                            >
+                                                                会社
+                                                            </Label>
+                                                            <select
+                                                                className="form-select mb-3"
+                                                                value={
+                                                                    userData.company_id
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            company_id:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option>
+                                                                    オフィスを選択してください
+                                                                </option>
+
+                                                                {companyData?.map(
+                                                                    (
+                                                                        items,
+                                                                        index
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            value={
+                                                                                items.id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                items.company_name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="skillsInput"
+                                                                className="form-label"
+                                                            >
+                                                                役職
+                                                            </Label>
+                                                            <select
+                                                                className="form-select mb-3"
+                                                                value={
+                                                                    userData.position_id
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            position_id:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option>
+                                                                    役職を選択してください
+                                                                </option>
+                                                                {position?.map(
+                                                                    (
+                                                                        items,
+                                                                        index
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            value={
+                                                                                items.id
+                                                                            }
+                                                                            selected={
+                                                                                items.id ===
+                                                                                userData.position_id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                items.position_name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+
+                                                                {/* <option value="Y01">
+                                                                    取締役
+                                                                </option>
+                                                                <option value="Y02">
+                                                                    部門長
+                                                                </option>
+                                                                <option value="Y03">
+                                                                    マネージャー
+                                                                </option>
+                                                                <option value="Y04">
+                                                                    リーダー
+                                                                </option>
+                                                                <option value="Y05">
+                                                                    チーフ
+                                                                </option> */}
+                                                            </select>
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="skillsInput"
+                                                                className="form-label"
+                                                            >
+                                                                オフィス
+                                                            </Label>
+                                                            <select
+                                                                className="form-select mb-3"
+                                                                value={
+                                                                    userData.office_id
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            office_id:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option>
+                                                                    オフィスを選択してください
+                                                                </option>
+
+                                                                {office?.map(
+                                                                    (
+                                                                        items,
+                                                                        index
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            value={
+                                                                                items.id
+                                                                            }
+                                                                            selected={
+                                                                                items.id ==
+                                                                                userData.office_id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                items.office_name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                            {/* <option >オフィスを選択してください</option>*/}
+                                                            {/* <option value="O02">那覇オフィス</option>
+                                                                <option value="O03">北谷オフィス</option>
+                                                                <option value="O04">コザオフィス</option>
+                                                                <option value="O05">浦添オフィス</option>
+                                                                <option value="O06">名護オフィス</option> */}
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="skillsInput"
+                                                                className="form-label"
+                                                            >
+                                                                部門
+                                                            </Label>
+                                                            <select
+                                                                className="form-select mb-3"
+                                                                value={
+                                                                    userData.department_id
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            department_id:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option>
+                                                                    部門を選択してください
+                                                                </option>
+
+                                                                {data?.map(
+                                                                    (
+                                                                        items,
+                                                                        index
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            value={
+                                                                                items.id
+                                                                            }
+                                                                            selected={
+                                                                                items.id ===
+                                                                                userData.department_id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                items.dept_name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+
+                                                                {/* <option value="B02">生産支援部</option>
+                                                                <option value="B03">業務推進室</option>
+                                                                <option value="B04">活躍プロジェクト室</option>
+                                                                <option value="B05">アフスク事業部</option> */}
+                                                            </select>
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="skillsInput"
+                                                                className="form-label"
+                                                            >
+                                                                区分
+                                                            </Label>
+                                                            <select
+                                                                className="form-select mb-3"
+                                                                value={
+                                                                    userData.category_id
+                                                                }
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            category_id:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option>
+                                                                    区分を選択してください
+                                                                </option>
+                                                                {categoryData?.map(
+                                                                    (
+                                                                        items,
+                                                                        index
+                                                                    ) => (
+                                                                        <option
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                            value={
+                                                                                items.id
+                                                                            }
+                                                                            selected={
+                                                                                items.id ===
+                                                                                userData.category_id
+                                                                            }
+                                                                        >
+                                                                            {
+                                                                                items.cat_name
+                                                                            }
+                                                                        </option>
+                                                                    )
+                                                                )}
+                                                            </select>
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="emailInput"
+                                                                className="form-label"
+                                                            >
+                                                                メールアドレス
+                                                            </Label>
+                                                            <Input
+                                                                type="email"
+                                                                className="form-control"
+                                                                id="emailInput"
+                                                                placeholder=""
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            email: e
+                                                                                .target
+                                                                                .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    userData.email
+                                                                }
+                                                                defaultValue={
+                                                                    ""
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </Col>
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label
+                                                                htmlFor="designationInput"
+                                                                className="form-label"
+                                                            >
+                                                                ログインID
+                                                            </Label>
+                                                            <Input
+                                                                type="text"
+                                                                className="form-control"
+                                                                // ref={inputRef}
+                                                                id="designationInput"
+                                                                placeholder=""
+                                                                onChange={(e) =>
+                                                                    setUserData(
+                                                                        {
+                                                                            ...userData,
+                                                                            login_id:
+                                                                                e
+                                                                                    .target
+                                                                                    .value,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    userData.login_id
+                                                                }
+                                                                defaultValue={
+                                                                    ""
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </Col>
+                                                    {/*
+                                                    <Col lg={6}>
+                                                        <div className="mb-3">
+                                                            <Label htmlFor="newpasswordInput" className="form-label">New
+                                                                Password*</Label>
+                                                            <Input type="password" className="form-control"
+                                                                id="newpasswordInput" placeholder="" />
+                                                        </div>
+                                                    </Col>
+*/}
+                                                    <h5 className="card-title text-decoration-underline mb-3">
+                                                        権限:
+                                                    </h5>
+                                                    <ul className="list-unstyled mb-0">
+                                                        <li className="d-flex">
+                                                            <div className="flex-grow-1">
+                                                                <label
+                                                                    htmlFor="directMessage"
+                                                                    className="form-check-label fs-14"
+                                                                >
+                                                                    利用者作成編集権限
+                                                                </label>
+                                                                <p className="text-muted">
+                                                                    利用者を作成したり、編集する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="user_edit_r"
+                                                                        defaultChecked={
+                                                                            userData.user_edit_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="directMessage"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.user_edit_r= e.target.checked == true?1:0
+                                                                            console.log("data.user_edit_r............", data.user_edit_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                        // defaultChecked
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="desktopNotification"
+                                                                >
+                                                                    利用者閲覧権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    利用者情報を閲覧する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="user_refer_r"
+                                                                        defaultChecked={
+                                                                            userData.user_refer_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="desktopNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.user_refer_r= e.target.checked == true?1:0
+                                                                            console.log("data.user_refer_r............", data.user_refer_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="emailNotification"
+                                                                >
+                                                                    お知らせ作成編集権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    お知らせを作成したり、編集する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="notice_edit_r"
+                                                                        defaultChecked={
+                                                                            userData.notice_edit_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="emailNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.notice_edit_r= e.target.checked == true?1:0
+                                                                            console.log("data.notice_edit_r............", data.notice_edit_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="chatNotification"
+                                                                >
+                                                                    お知らせ返信権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    お知らせに返信、コメントする権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="notice_reply_r"
+                                                                        defaultChecked={
+                                                                            userData.notice_reply_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="chatNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.notice_reply_r= e.target.checked == true?1:0
+                                                                            console.log("data.notice_reply_r............", data.notice_reply_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="chatNotification"
+                                                                >
+                                                                    お知らせ閲覧権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    お知らせを閲覧する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="notice_refer_r"
+                                                                        defaultChecked={
+                                                                            userData.notice_refer_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="chatNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.notice_refer_r= e.target.checked == true?1:0
+                                                                            console.log("data.notice_refer_r............", data.notice_refer_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    WIKI作成編集権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    WIKIを作成したり編集する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="wiki_edit_r"
+                                                                        defaultChecked={
+                                                                            userData.wiki_edit_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.wiki_edit_r= e.target.checked == true?1:0
+                                                                            console.log("data.wiki_edit_r............", data.wiki_edit_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    WIKI閲覧権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    WIKIを閲覧する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="wiki_refer_r"
+                                                                        defaultChecked={
+                                                                            userData.wiki_refer_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.wiki_refer_r= e.target.checked == true?1:0
+                                                                            console.log("data.wiki_refer_r............", data.wiki_refer_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    ワークフロー作成編集権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    ワークフローを作成したり編集する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="wf_edit_r"
+                                                                        defaultChecked={
+                                                                            userData.wf_edit_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.wf_edit_r = e.target.checked == true?1:0
+                                                                            console.log("data.wf_edit_r............", data.wf_edit_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    ワークフロー閲覧権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    ワークフローを閲覧する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="wf_refer_r"
+                                                                        defaultChecked={
+                                                                            userData.wf_refer_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.wf_refer_r = e.target.checked == true?1:0
+                                                                            console.log("data.wf_refer_r............", data.wf_refer_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    SNS作成編集権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    チャット等SNSを作成したり編集する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="sns_edit_r"
+                                                                        defaultChecked={
+                                                                            userData.sns_edit_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.sns_edit_r = e.target.checked == true?1:0
+                                                                            console.log("data.sns_edit_r............", data.sns_edit_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                    
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    SNS閲覧権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    チャット等SNSを閲覧する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="sns_refer_r"
+                                                                        defaultChecked={
+                                                                            userData.sns_refer_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.sns_refer_r = e.target.checked == true?1:0
+                                                                            console.log("data.sns_refer_r............", data.sns_refer_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    ファイルサーバー編集権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    ファイルサーバーのフォルダ、ファイルを作成、編集する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="fs_edit_r"
+                                                                        defaultChecked={
+                                                                            userData.fs_edit_r
+                                                                        }
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.fs_edit_r = e.target.checked == true?1:0
+                                                                            console.log("data.fs_edit_r............", data.fs_edit_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                        <li className="d-flex mt-2">
+                                                            <div className="flex-grow-1">
+                                                                <Label
+                                                                    className="form-check-label fs-14"
+                                                                    htmlFor="purchaesNotification"
+                                                                >
+                                                                    ファイルサーバー閲覧権限
+                                                                </Label>
+                                                                <p className="text-muted">
+                                                                    ファイルサーバーのフォルダ、ファイルを閲覧する権限
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex-shrink-0">
+                                                                <div className="form-check form-switch form-switch-lg">
+                                                                    <Input
+                                                                        name="fs_refer_r"
+                                                                        defaultChecked={
+                                                                            userData.fs_refer_r
+                                                                        }
+                                                                        
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="purchaesNotification"
+                                                                        onChange={(e)=>setUserData((data)=>{
+                                                                            console.log("e.target.checked::",e.target.checked)
+                                                                            data.fs_refer_r = e.target.checked == true?1:0
+                                                                            console.log("data.fs_refer_r............", data.fs_refer_r)
+                                                                            return data
+                                                                            
+                                                                        })}
+                                                                        // onChange={handleCheckBox}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+
+                                                    <Col lg={12}>
+                                                        <div className="hstack gap-2 justify-content-end">
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-primary"
+                                                                onClick={onEdit}
+                                                            >
+                                                                登録
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-soft-success"
+                                                                onClick={() =>
+                                                                    handleClear()
+                                                                }
+                                                            >
+                                                                クリア
+                                                            </button>
+                                                        </div>
+                                                    </Col>
+                                                </Row>
+                                            </Form>
+                                        </TabPane>
+
+                                        <TabPane tabId="2">
+                                            <div className="mb-3">
+                                                <h5 className="card-title text-decoration-underline mb-3">
+                                                    権限:
+                                                </h5>
+                                                <ul className="list-unstyled mb-0">
+                                                    <li className="d-flex">
+                                                        <div className="flex-grow-1">
+                                                            <label
+                                                                htmlFor="directMessage"
+                                                                className="form-check-label fs-14"
+                                                            >
+                                                                利用者作成編集権限
+                                                            </label>
+                                                            <p className="text-muted">
+                                                                利用者を作成したり、編集する権限
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <div className="form-check form-switch form-switch-lg">
+                                                                <Input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    id="directMessage"
+                                                                    defaultChecked
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li className="d-flex mt-2">
+                                                        <div className="flex-grow-1">
+                                                            <Label
+                                                                className="form-check-label fs-14"
+                                                                htmlFor="desktopNotification"
+                                                            >
+                                                                利用者閲覧権限
+                                                            </Label>
+                                                            <p className="text-muted">
+                                                                利用者情報を閲覧する権限
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <div className="form-check form-switch form-switch-lg">
+                                                                <Input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    id="desktopNotification"
+                                                                    defaultChecked
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li className="d-flex mt-2">
+                                                        <div className="flex-grow-1">
+                                                            <Label
+                                                                className="form-check-label fs-14"
+                                                                htmlFor="emailNotification"
+                                                            >
+                                                                お知らせ作成編集権限
+                                                            </Label>
+                                                            <p className="text-muted">
+                                                                お知らせを作成したり、編集する権限
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <div className="form-check form-switch form-switch-lg">
+                                                                <Input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    id="emailNotification"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li className="d-flex mt-2">
+                                                        <div className="flex-grow-1">
+                                                            <Label
+                                                                className="form-check-label fs-14"
+                                                                htmlFor="chatNotification"
+                                                            >
+                                                                お知らせ閲覧権限
+                                                            </Label>
+                                                            <p className="text-muted">
+                                                                お知らせを閲覧する権限
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <div className="form-check form-switch form-switch-lg">
+                                                                <Input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    id="chatNotification"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li className="d-flex mt-2">
+                                                        <div className="flex-grow-1">
+                                                            <Label
+                                                                className="form-check-label fs-14"
+                                                                htmlFor="purchaesNotification"
+                                                            >
+                                                                WIKI作成編集権限
+                                                            </Label>
+                                                            <p className="text-muted">
+                                                                WIKIを作成したり編集する権限
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <div className="form-check form-switch form-switch-lg">
+                                                                <Input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    id="purchaesNotification"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                    <li className="d-flex mt-2">
+                                                        <div className="flex-grow-1">
+                                                            <Label
+                                                                className="form-check-label fs-14"
+                                                                htmlFor="purchaesNotification"
+                                                            >
+                                                                WIKI閲覧権限
+                                                            </Label>
+                                                            <p className="text-muted">
+                                                                WIKIを閲覧する権限
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <div className="form-check form-switch form-switch-lg">
+                                                                <Input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    role="switch"
+                                                                    id="purchaesNotification"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </TabPane>
+                                    </TabContent>
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    </Row>
+                </div>
+            </div>
+        </React.Fragment>
+    );
+};
+
+export default FormSelect;
